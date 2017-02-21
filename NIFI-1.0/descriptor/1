@@ -1,0 +1,150 @@
+{
+  "name" : "NIFI",
+  "label" : "NiFi",
+  "description" : "NiFi service",
+  "version" : 1,
+  "runAs" : {
+    "user" : "root",
+    "group" : "root"
+   },
+  "maxInstances" : 1,
+  "icon" : "images/icon.png",
+  "compatibility" : {
+    "generation" : 1,
+    "cdhVersion" : {
+      "min" : 5,
+      "max" : 5
+    }
+  },
+  "parcel" : {
+    "repoUrl" : "http://atllvcasdb100d.hughestelematics.net/Nifi",
+    "requiredTags" : ["cdh"],
+    "optionalTags" : [ "nifi-plugin" ]
+  },
+  "parameters" : [
+        {
+          "name" : "nifi.cluster.is.node",
+          "label" : "Nifi Cluster mode",
+          "configName" : "nifi.cluster.is.node",
+          "description" : "The mode in which nifi is set",
+          "required" : "true",
+          "type" : "boolean",
+          "default" : true
+        },
+	{
+          "name" : "dataDir",
+          "label" : "zookeeper data directory",
+          "configName" : "dataDir",
+          "description" : "The datadirectory where the zookeeper data will be",
+          "required" : "true",
+          "type" : "string",
+          "default" : /opt/app/data/zookeeper
+        },
+	 {
+          "name" : "nifi.cluster.node.address",
+          "label" : "Nifi Cluster mode",
+          "configName" : "nifi.cluster.node.address",
+          "description" : "The mode in which nifi is set",
+          "required" : "true",
+          "type" : "string",
+          "default" : ${host}
+	  "configurableInWizard": true
+        },
+	{
+          "name" : "nifi.cluster.node.protocol.port",
+          "label" : "nifi cluster protocol port",
+          "configName" : "nifi.cluster.node.protocol.port",
+          "description" : "The protocol port of the nifi cluster node",
+          "required" : "true",
+          "type" : "port",
+          "default" : 9090
+        },
+	{
+          "name" : "nifi.remote.input.host",
+          "label" : "nifi remote input host",
+          "configName" : "nifi.remote.input.host",
+          "description" : "The remote input host",
+          "required" : "true",
+          "type" : "string",
+          "default" : ${host}
+	  "configurableInWizard": true
+        },
+	 {
+          "name" : "nifi.remote.input.socket.port",
+          "label" : "nifi cluster socket port",
+          "configName" : "nifi.input.socket.port",
+          "description" : "The socket port of the nifi cluster node",
+          "required" : "true",
+          "type" : "port",
+          "default" : 9097
+        },
+	{
+          "name" : "nifi.web.http.host",
+          "label" : "nifi web http host",
+          "configName" : "nifi.web.http.host",
+          "description" : "The web http host",
+          "required" : "true",
+          "type" : "string",
+          "default" : ${host}
+          "configurableInWizard": true
+        },
+],
+	"additionalConfigs" : [
+              {
+                "key" : "#nifi.zookeeper.connect.string",
+                "value" : "{{QUORUM}}"
+              }
+],
+  "configWriter" : {
+        "generators" : [
+          {
+            "filename" : "nifi.properties",
+            "configFormat" : "properties",
+            "includedParams" : [
+              "nifi.web.http.host",
+              "nifi.remote.input.socket.port",
+              "nifi.remote.input.host",
+              "nifi.cluster.is.node",
+              "nifi.cluster.node.address",
+              "nifi.cluster.node.protocol.port"
+            ]
+          }
+	]
+    },
+  "configWriter" : {
+     "generators" : [
+        {
+          "filename" : "zookeeper.properties",
+ 	  "configFormat" : "properties",
+	  "includedParams" : [
+	   "dataDir"
+        ]
+      }
+    ]
+ },
+  "stopRunner" : {
+    "runner" : {
+      "program" : "scripts/control.sh",
+      "args" : ["stop"]
+    },
+    "timeout" : 60000,
+    "masterRole": "NIFI_NODE"
+  },
+  "rolesWithExternalLinks" : ["NIFI_NODE"],
+  "roles" : [{
+    "name" : "NIFI_NODE",
+    "label" : "NiFi Node",
+    "pluralLabel" : "NiFi Nodes",
+    "jvmBased" : true,
+    "startRunner" : {
+      "program" : "scripts/control.sh",
+      "args" : [ "start" ]
+     },
+     "externalLink" : {
+       "name" : "nifi_web_ui",
+       "label" : "NiFi Node Web UI",
+       "url" : "http://${host}:8080/nifi"
+     }
+  }]
+}
+
